@@ -62,7 +62,11 @@ export class CommentService {
       authorId,
       parentCommentId,
     });
-    await logAudit(authorId, "comment.created", { taskId, commentId: comment.id, parentCommentId });
+    await logAudit(authorId, "comment.created", task.project.workspaceId, {
+      taskId,
+      commentId: comment.id,
+      parentCommentId,
+    });
 
     if (parent && parent.authorId !== authorId) {
       await notificationService.notifyUser(
@@ -101,13 +105,16 @@ export class CommentService {
       throw new AppError("Comment not found", 404);
     }
 
-    const { role } = await requireTaskMembership(comment.taskId, userId);
+    const { task, role } = await requireTaskMembership(comment.taskId, userId);
 
     if (comment.authorId !== userId && !hasRole(role, "ADMIN")) {
       throw new AppError("Only the comment author or an admin can delete this comment", 403);
     }
 
     await commentRepository.delete(commentId);
-    await logAudit(userId, "comment.deleted", { taskId: comment.taskId, commentId });
+    await logAudit(userId, "comment.deleted", task.project.workspaceId, {
+      taskId: comment.taskId,
+      commentId,
+    });
   }
 }

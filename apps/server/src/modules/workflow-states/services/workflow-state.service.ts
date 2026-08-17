@@ -42,7 +42,7 @@ export class WorkflowStateService {
     userId: string,
     data: { name: string; color?: string; category: TaskStatus; isDefault?: boolean },
   ) {
-    await requireProjectOwner(projectId, userId);
+    const project = await requireProjectOwner(projectId, userId);
 
     const order = (await workflowStateRepository.getMaxOrder(projectId)) + 1;
     const state = await workflowStateRepository.create({ projectId, order, ...data, isDefault: !!data.isDefault });
@@ -51,7 +51,10 @@ export class WorkflowStateService {
       await workflowStateRepository.clearDefaultExcept(projectId, state.id);
     }
 
-    await logAudit(userId, "workflow_state.created", { projectId, stateId: state.id });
+    await logAudit(userId, "workflow_state.created", project.workspaceId, {
+      projectId,
+      stateId: state.id,
+    });
     return state;
   }
 
@@ -61,7 +64,7 @@ export class WorkflowStateService {
     stateId: string,
     data: { name?: string; color?: string; category?: TaskStatus; isDefault?: boolean },
   ) {
-    await requireProjectOwner(projectId, userId);
+    const project = await requireProjectOwner(projectId, userId);
 
     const existing = await workflowStateRepository.findById(stateId);
     if (!existing || existing.projectId !== projectId) {
@@ -74,12 +77,12 @@ export class WorkflowStateService {
       await workflowStateRepository.clearDefaultExcept(projectId, stateId);
     }
 
-    await logAudit(userId, "workflow_state.updated", { projectId, stateId });
+    await logAudit(userId, "workflow_state.updated", project.workspaceId, { projectId, stateId });
     return updated;
   }
 
   async deleteState(projectId: string, userId: string, stateId: string) {
-    await requireProjectOwner(projectId, userId);
+    const project = await requireProjectOwner(projectId, userId);
 
     const existing = await workflowStateRepository.findById(stateId);
     if (!existing || existing.projectId !== projectId) {
@@ -100,7 +103,7 @@ export class WorkflowStateService {
     }
 
     await workflowStateRepository.delete(stateId);
-    await logAudit(userId, "workflow_state.deleted", { projectId, stateId });
+    await logAudit(userId, "workflow_state.deleted", project.workspaceId, { projectId, stateId });
 
     if (existing.isDefault) {
       const remaining = await workflowStateRepository.findByProjectId(projectId);
@@ -112,7 +115,7 @@ export class WorkflowStateService {
   }
 
   async reorderStates(projectId: string, userId: string, orderedIds: string[]) {
-    await requireProjectOwner(projectId, userId);
+    const project = await requireProjectOwner(projectId, userId);
 
     const existing = await workflowStateRepository.findByProjectId(projectId);
     const existingIds = new Set(existing.map((s) => s.id));
@@ -122,7 +125,7 @@ export class WorkflowStateService {
     }
 
     await Promise.all(orderedIds.map((id, index) => workflowStateRepository.setOrder(id, index)));
-    await logAudit(userId, "workflow_state.reordered", { projectId });
+    await logAudit(userId, "workflow_state.reordered", project.workspaceId, { projectId });
 
     return workflowStateRepository.findByProjectId(projectId);
   }

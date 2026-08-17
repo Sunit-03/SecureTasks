@@ -3,18 +3,18 @@ import { AuthService } from "../services/auth.services";
 
 const authService = new AuthService();
 
+const REFRESH_COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: false, // Set to true in production with HTTPS
+  sameSite: "strict" as const,
+};
+
 export class AuthController {
   async signup(req: Request, res: Response) {
     try {
       const { email, password } = req.body;
-      // console.log(req.body);
-      // console.log(email, password);
       const result = await authService.signup(email, password);
-      res.cookie("refreshToken", result.refreshToken, {
-        httpOnly: true,
-        secure: false, // Set to true in production with HTTPS
-        sameSite: "strict",
-      });
+      res.cookie("refreshToken", result.refreshToken, REFRESH_COOKIE_OPTIONS);
 
       const safeUser = {
         id: result.user.id,
@@ -38,11 +38,7 @@ export class AuthController {
       const { email, password } = req.body;
 
       const result = await authService.login(email, password);
-      res.cookie("refreshToken", result.refreshToken, {
-        httpOnly: true,
-        secure: false, // Set to true in production with HTTPS
-        sameSite: "strict",
-      });
+      res.cookie("refreshToken", result.refreshToken, REFRESH_COOKIE_OPTIONS);
 
       const safeUser = {
         id: result.user.id,
@@ -73,7 +69,11 @@ export class AuthController {
 
       const session = await authService.refreshSession(refreshToken);
 
-      res.json(session);
+      // Rotation: every successful refresh issues (and cookies) a new
+      // refresh token, invalidating the one that was just presented.
+      res.cookie("refreshToken", session.refreshToken, REFRESH_COOKIE_OPTIONS);
+
+      res.json({ user: session.user, accessToken: session.accessToken });
     } catch (error) {
       res.status(401).json({
         message: "Invalid refresh token",
@@ -81,7 +81,8 @@ export class AuthController {
     }
   }
 
-  async logout(_: Request, res: Response) {
+  async logout(req: Request, res: Response) {
+    await authService.logout(req.cookies.refreshToken);
     res.clearCookie("refreshToken");
     res.json({
       message: "Logged out successfully",

@@ -52,6 +52,7 @@ model User {
   notifications Notification[]
   apiKeys       ApiKey[]
   auditLogs     AuditLog[]
+  refreshTokens RefreshToken[]
 
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
@@ -176,7 +177,28 @@ model AuditLog {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  // Nullable: not every logged action is workspace-scoped (e.g. future auth
+  // events), and set-null-on-delete keeps the historical entry after the
+  // workspace itself is gone.
+  workspaceId String?
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+
   createdAt DateTime @default(now())
+
+  @@index([workspaceId])
+}
+
+model RefreshToken {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  expiresAt DateTime
+  revokedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model Workspace {
@@ -192,6 +214,8 @@ model Workspace {
   members WorkspaceMember[]
 
   projects Project[]
+
+  auditLogs AuditLog[]
 }
 
 model WorkspaceMember {

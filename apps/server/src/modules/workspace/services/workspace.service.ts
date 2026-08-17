@@ -40,8 +40,7 @@ export class WorkspaceService {
     }
 
     const member = await workspaceRepository.addMember({ workspaceId, userId: user.id, role });
-    await logAudit(callerId, "workspace.member_invited", {
-      workspaceId,
+    await logAudit(callerId, "workspace.member_invited", workspaceId, {
       invitedUserId: user.id,
       role,
     });
@@ -77,8 +76,7 @@ export class WorkspaceService {
     }
 
     const updated = await workspaceRepository.updateMemberRole(memberId, role as WorkspaceRole);
-    await logAudit(callerId, "workspace.member_role_changed", {
-      workspaceId,
+    await logAudit(callerId, "workspace.member_role_changed", workspaceId, {
       memberId,
       newRole: role,
     });
@@ -96,7 +94,10 @@ export class WorkspaceService {
       throw new AppError("Only the workspace owner can delete this workspace", 403);
     }
 
+    // Log before deleting: once the workspace row is gone, a FK reference to
+    // it in this same insert would violate referential integrity even
+    // though the column is nullable.
+    await logAudit(callerId, "workspace.deleted", workspaceId, { workspaceName: workspace.name });
     await workspaceRepository.deleteWorkspace(workspaceId);
-    await logAudit(callerId, "workspace.deleted", { workspaceId });
   }
 }

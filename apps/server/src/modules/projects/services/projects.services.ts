@@ -21,7 +21,7 @@ export class ProjectService {
         await requireWorkspaceRole(data.workspaceId, callerId);
         const project = await projectRepository.createProject(data);
         await workflowStateRepository.seedDefaults(project.id);
-        await logAudit(callerId, "project.created", { projectId: project.id, workspaceId: data.workspaceId });
+        await logAudit(callerId, "project.created", data.workspaceId, { projectId: project.id });
         return project;
     }
 
@@ -37,7 +37,7 @@ export class ProjectService {
         // Authorize against the project's real workspace, never a client-supplied one.
         await requireWorkspaceRole(project.workspaceId, callerId);
         const updated = await projectRepository.update(projectId, data);
-        await logAudit(callerId, "project.updated", { projectId });
+        await logAudit(callerId, "project.updated", project.workspaceId, { projectId });
         return updated;
     }
 
@@ -48,6 +48,6 @@ export class ProjectService {
         }
         await requireWorkspaceRole(project.workspaceId, callerId);
         await projectRepository.delete(projectId);
-        await logAudit(callerId, "project.deleted", { projectId });
+        await logAudit(callerId, "project.deleted", project.workspaceId, { projectId });
     }
 }

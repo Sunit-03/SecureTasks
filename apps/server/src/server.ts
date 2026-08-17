@@ -35,12 +35,22 @@ app.get("/", (_, res) => {
 });
 
 app.get("/health", async (_, res) => {
-  const users = await prisma.user.findMany();
-
-  res.json({
-    success: true,
-    users,
-  });
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({
+      success: true,
+      status: "ok",
+      database: "connected",
+      timestamp: new Date().toISOString(),
+    });
+  } catch {
+    res.status(503).json({
+      success: false,
+      status: "error",
+      database: "unreachable",
+      timestamp: new Date().toISOString(),
+    });
+  }
 });
 
 app.use("/api/v1/auth", authRoutes);

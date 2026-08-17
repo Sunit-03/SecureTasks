@@ -19,11 +19,23 @@ const systemPaths = {
   },
   "/health": {
     get: {
-      summary: "Get health check details",
+      summary: "Get service health status",
+      description:
+        "Unauthenticated liveness/readiness probe. Reports database connectivity only — does not return any user or application data.",
       tags: ["System"],
       responses: {
         200: {
-          description: "Health check data returned successfully",
+          description: "Service is healthy and the database is reachable",
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/HealthResponse",
+              },
+            },
+          },
+        },
+        503: {
+          description: "Database is unreachable",
           content: {
             "application/json": {
               schema: {

@@ -106,17 +106,25 @@ const commonSchemas = {
   },
   HealthResponse: {
     type: "object",
-    required: ["success", "users"],
+    required: ["success", "status", "database", "timestamp"],
     properties: {
       success: {
         type: "boolean",
         example: true,
       },
-      users: {
-        type: "array",
-        items: {
-          $ref: "#/components/schemas/UserRecord",
-        },
+      status: {
+        type: "string",
+        enum: ["ok", "error"],
+        example: "ok",
+      },
+      database: {
+        type: "string",
+        enum: ["connected", "unreachable"],
+        example: "connected",
+      },
+      timestamp: {
+        type: "string",
+        format: "date-time",
       },
     },
   },

@@ -51,7 +51,10 @@ export class TaskService {
     }
 
     const task = await taskRepository.create({ ...data, createdById, statusId: defaultState.id });
-    await logAudit(createdById, "task.created", { taskId: task.id, projectId: data.projectId });
+    await logAudit(createdById, "task.created", project.workspaceId, {
+      taskId: task.id,
+      projectId: data.projectId,
+    });
     return task;
   }
 
@@ -142,7 +145,7 @@ export class TaskService {
     const { mentionedUserIds, ...taskData } = data;
     const updated = await taskRepository.update(task.id, taskData);
 
-    await logAudit(userId, "task.updated", { taskId, fields: Object.keys(data) });
+    await logAudit(userId, "task.updated", workspaceId, { taskId, fields: Object.keys(data) });
 
     if (data.assigneeId && data.assigneeId !== task.assigneeId && data.assigneeId !== userId) {
       await notificationService.notifyUser(
@@ -193,13 +196,13 @@ export class TaskService {
   }
 
   async deleteTask(taskId: string, userId: string) {
-    const { task, role } = await this.getTaskWithMembership(taskId, userId);
+    const { task, role, workspaceId } = await this.getTaskWithMembership(taskId, userId);
 
     if (!hasRole(role, "ADMIN")) {
       throw new AppError("Only an admin or owner can delete tasks", 403);
     }
 
     await taskRepository.delete(task.id);
-    await logAudit(userId, "task.deleted", { taskId });
+    await logAudit(userId, "task.deleted", workspaceId, { taskId });
   }
 }

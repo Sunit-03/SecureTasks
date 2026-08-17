@@ -9,9 +9,12 @@ import { asyncHandler } from "../../../utils/async-handler";
 import { authMiddleware } from "../../../middleware/auth.middleware";
 import { validate } from "../../../middleware/validation.middleware";
 import { requireWorkspaceMember } from "../../../middleware/workspace.middleware";
+import auditLogRoutes from "../../audit-log/routes/audit-log.routes";
 
 const router = Router();
 const workspaceController = new WorkspaceController();
+
+router.use("/:workspaceId/audit-log", auditLogRoutes);
 
 router.post(
   "/",

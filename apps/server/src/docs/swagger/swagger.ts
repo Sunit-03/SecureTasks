@@ -10,6 +10,12 @@ import workspacePaths from "./workspace/workspace.paths";
 import workspaceSchemas from "./workspace/workspace.schemas";
 import projectPaths from "./project/project.paths";
 import projectSchemas from "./project/project.schemas";
+import commentPaths from "./comment/comment.paths";
+import commentSchemas from "./comment/comment.schemas";
+import notificationPaths from "./notification/notification.paths";
+import notificationSchemas from "./notification/notification.schemas";
+import workflowStatePaths from "./workflow-state/workflow-state.paths";
+import workflowStateSchemas from "./workflow-state/workflow-state.schemas";
 
 const options: swaggerJsdoc.Options = {
   definition: {
@@ -52,6 +58,15 @@ const options: swaggerJsdoc.Options = {
       {
         name: "Projects",
       },
+      {
+        name: "Comments",
+      },
+      {
+        name: "Notifications",
+      },
+      {
+        name: "Workflow States",
+      },
     ],
     paths: {
       ...systemPaths,
@@ -59,6 +74,9 @@ const options: swaggerJsdoc.Options = {
       ...taskPaths,
       ...workspacePaths,
       ...projectPaths,
+      ...commentPaths,
+      ...notificationPaths,
+      ...workflowStatePaths,
     },
     components: {
       schemas: {
@@ -67,6 +85,9 @@ const options: swaggerJsdoc.Options = {
         ...taskSchemas,
         ...workspaceSchemas,
         ...projectSchemas,
+        ...commentSchemas,
+        ...notificationSchemas,
+        ...workflowStateSchemas,
 
       },
       securitySchemes: {

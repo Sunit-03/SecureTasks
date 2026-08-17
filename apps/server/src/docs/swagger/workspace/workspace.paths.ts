@@ -201,6 +201,206 @@ const workspacePaths = {
       },
     },
   },
+
+  "/api/v1/workspaces/{workspaceId}/members/{memberId}": {
+    patch: {
+      summary: "Change a workspace member's role",
+      description:
+        "Caller must be the workspace OWNER. The target cannot be the OWNER, and the caller cannot change their own role.",
+      tags: ["Workspaces"],
+      security: [
+        {
+          bearerAuth: [],
+        },
+      ],
+      parameters: [
+        {
+          name: "workspaceId",
+          in: "path",
+          required: true,
+          schema: { type: "string", format: "uuid" },
+        },
+        {
+          name: "memberId",
+          in: "path",
+          required: true,
+          schema: { type: "string", format: "uuid" },
+        },
+      ],
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: {
+              $ref: "#/components/schemas/UpdateMemberRoleRequest",
+            },
+          },
+        },
+      },
+      responses: {
+        200: {
+          description: "Member role updated successfully",
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/WorkspaceMemberResponse",
+              },
+            },
+          },
+        },
+        400: {
+          description: "Validation failed, or caller tried to change their own role",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+        401: {
+          description: "Authorization failed",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+        403: {
+          description:
+            "Caller is not a workspace member, is not the OWNER, or the target member is the OWNER",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+        404: {
+          description: "Member not found in this workspace",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+      },
+    },
+  },
+
+  "/api/v1/workspaces/{workspaceId}": {
+    delete: {
+      summary: "Delete a workspace",
+      description:
+        "Caller must be the workspace OWNER. Cascades to members, projects, tasks, and comments.",
+      tags: ["Workspaces"],
+      security: [
+        {
+          bearerAuth: [],
+        },
+      ],
+      parameters: [
+        {
+          name: "workspaceId",
+          in: "path",
+          required: true,
+          schema: { type: "string", format: "uuid" },
+        },
+      ],
+      responses: {
+        200: {
+          description: "Workspace deleted successfully",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/MessageResponse" },
+            },
+          },
+        },
+        401: {
+          description: "Authorization failed",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+        403: {
+          description: "Caller is not a workspace member, or is not the OWNER",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+        404: {
+          description: "Workspace not found",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+      },
+    },
+  },
+
+  "/api/v1/workspaces/{workspaceId}/audit-log": {
+    get: {
+      summary: "List a workspace's audit log",
+      description: "Caller must be the workspace OWNER.",
+      tags: ["Workspaces"],
+      security: [
+        {
+          bearerAuth: [],
+        },
+      ],
+      parameters: [
+        {
+          name: "workspaceId",
+          in: "path",
+          required: true,
+          schema: { type: "string", format: "uuid" },
+        },
+        {
+          name: "page",
+          in: "query",
+          required: false,
+          schema: { type: "integer", minimum: 1, default: 1 },
+        },
+        {
+          name: "limit",
+          in: "query",
+          required: false,
+          schema: { type: "integer", minimum: 1, maximum: 100, default: 50 },
+        },
+      ],
+      responses: {
+        200: {
+          description: "Audit log entries fetched successfully",
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/AuditLogListResponse",
+              },
+            },
+          },
+        },
+        401: {
+          description: "Authorization failed",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+        403: {
+          description: "Caller is not a member of this workspace, or is not the OWNER",
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ErrorResponse" },
+            },
+          },
+        },
+      },
+    },
+  },
 };
 
 export default workspacePaths;

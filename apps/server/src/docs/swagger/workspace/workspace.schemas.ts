@@ -172,6 +172,86 @@ const workspaceSchemas = {
       },
     },
   },
+
+  UpdateMemberRoleRequest: {
+    type: "object",
+    required: ["role"],
+    properties: {
+      role: {
+        type: "string",
+        enum: ["ADMIN", "MEMBER", "VIEWER"],
+        example: "MEMBER",
+      },
+    },
+  },
+
+  AuditLog: {
+    type: "object",
+    required: ["id", "action", "userId", "workspaceId", "createdAt"],
+    properties: {
+      id: {
+        type: "string",
+        format: "uuid",
+      },
+      action: {
+        type: "string",
+        example: "project.created",
+      },
+      ipAddress: {
+        type: "string",
+        nullable: true,
+      },
+      metadata: {
+        type: "object",
+        nullable: true,
+        additionalProperties: true,
+      },
+      userId: {
+        type: "string",
+        format: "uuid",
+      },
+      workspaceId: {
+        type: "string",
+        format: "uuid",
+        nullable: true,
+      },
+      createdAt: {
+        type: "string",
+        format: "date-time",
+      },
+      user: {
+        $ref: "#/components/schemas/WorkspaceMemberUserRef",
+      },
+    },
+  },
+
+  AuditLogListResponse: {
+    type: "object",
+    properties: {
+      success: {
+        type: "boolean",
+        example: true,
+      },
+      data: {
+        type: "array",
+        items: {
+          $ref: "#/components/schemas/AuditLog",
+        },
+      },
+      total: {
+        type: "integer",
+        example: 1,
+      },
+      page: {
+        type: "integer",
+        example: 1,
+      },
+      limit: {
+        type: "integer",
+        example: 50,
+      },
+    },
+  },
 };
 
 export default workspaceSchemas;

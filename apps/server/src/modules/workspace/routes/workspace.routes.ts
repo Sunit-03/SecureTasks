@@ -3,6 +3,7 @@ import { WorkspaceController } from "../controllers/workspace.controllers";
 import {
   addMemberSchema,
   createWorkspaceSchema,
+  updateMemberRoleSchema,
 } from "../validators/workspace.validators";
 import { asyncHandler } from "../../../utils/async-handler";
 import { authMiddleware } from "../../../middleware/auth.middleware";
@@ -38,6 +39,21 @@ router.get(
   authMiddleware,
   requireWorkspaceMember,
   asyncHandler(workspaceController.getMembers.bind(workspaceController)),
+);
+
+router.patch(
+  "/:workspaceId/members/:memberId",
+  authMiddleware,
+  requireWorkspaceMember,
+  validate(updateMemberRoleSchema),
+  asyncHandler(workspaceController.updateMemberRole.bind(workspaceController)),
+);
+
+router.delete(
+  "/:workspaceId",
+  authMiddleware,
+  requireWorkspaceMember,
+  asyncHandler(workspaceController.deleteWorkspace.bind(workspaceController)),
 );
 
 export default router;

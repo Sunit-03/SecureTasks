@@ -1,4 +1,5 @@
-export type WorkspaceRole = "OWNER" | "ADMIN" | "MEMBER";
+export type WorkspaceRole = "OWNER" | "ADMIN" | "MEMBER" | "VIEWER";
+export type InvitableRole = "ADMIN" | "MEMBER" | "VIEWER";
 
 export interface Workspace {
   id: string;
@@ -23,5 +24,9 @@ export interface CreateWorkspaceInput {
 
 export interface AddMemberInput {
   email: string;
-  role: "ADMIN" | "MEMBER";
+  role: InvitableRole;
+}
+
+export interface UpdateMemberRoleInput {
+  role: InvitableRole;
 }

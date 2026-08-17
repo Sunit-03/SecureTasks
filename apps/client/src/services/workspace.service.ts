@@ -2,6 +2,7 @@ import { api } from "@/lib/api";
 import {
   AddMemberInput,
   CreateWorkspaceInput,
+  UpdateMemberRoleInput,
   Workspace,
   WorkspaceMember,
 } from "@/types/workspace.types";
@@ -28,5 +29,14 @@ export const addWorkspaceMember = async (
   data: AddMemberInput,
 ): Promise<WorkspaceMember> => {
   const response = await api.post(`/workspaces/${workspaceId}/members`, data);
+  return response.data.data;
+};
+
+export const updateWorkspaceMemberRole = async (
+  workspaceId: string,
+  memberId: string,
+  data: UpdateMemberRoleInput,
+): Promise<WorkspaceMember> => {
+  const response = await api.patch(`/workspaces/${workspaceId}/members/${memberId}`, data);
   return response.data.data;
 };

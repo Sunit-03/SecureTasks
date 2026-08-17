@@ -37,8 +37,7 @@ export function useCreateProject(workspaceId: string) {
 export function useUpdateProject(workspaceId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateProjectInput }) =>
-      updateProject(id, workspaceId, data),
+    mutationFn: ({ id, data }: { id: string; data: UpdateProjectInput }) => updateProject(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: projectKeys.byWorkspace(workspaceId) });
       toast.success("Project updated");
@@ -50,7 +49,7 @@ export function useUpdateProject(workspaceId: string) {
 export function useDeleteProject(workspaceId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => deleteProject(id, workspaceId),
+    mutationFn: (id: string) => deleteProject(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: projectKeys.byWorkspace(workspaceId) });
       toast.success("Project deleted");

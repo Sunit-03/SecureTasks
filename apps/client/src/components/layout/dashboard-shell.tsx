@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Bell, BellOff, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useState } from "react";
 import { WorkspaceSwitcher } from "@/features/workspace/components/workspace-switcher";
+import { NotificationBell } from "@/components/layout/notification-bell";
 import { Avatar } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useAuthStore } from "@/store/auth.store";
@@ -22,7 +23,6 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { user, logout } = useAuthStore();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [notifOpen, setNotifOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-[var(--bg)]">
@@ -36,28 +36,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           </div>
           <div className="flex items-center gap-3">
             <ThemeToggle />
-            <div className="relative">
-              <button
-                onClick={() => setNotifOpen((v) => !v)}
-                className="rounded-full p-2 text-[var(--fg-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)] cursor-pointer"
-              >
-                <Bell className="h-4 w-4" />
-              </button>
-              {notifOpen && (
-                <>
-                  <div className="fixed inset-0 z-10" onClick={() => setNotifOpen(false)} />
-                  <div className="absolute right-0 z-20 mt-2 w-64 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 shadow-xl">
-                    <div className="flex flex-col items-center gap-2 py-3 text-center">
-                      <BellOff className="h-5 w-5 text-[var(--fg-muted)]" />
-                      <p className="text-xs font-medium text-[var(--fg)]">No new notifications</p>
-                      <p className="text-[11px] text-[var(--fg-muted)]">
-                        We&apos;ll show updates here soon.
-                      </p>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
+            <NotificationBell />
             <div className="relative">
               <button onClick={() => setMenuOpen((v) => !v)} className="cursor-pointer">
                 <Avatar label={user?.email ?? "?"} />

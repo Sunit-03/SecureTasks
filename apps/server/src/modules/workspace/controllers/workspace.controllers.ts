@@ -23,6 +23,7 @@ export class WorkspaceController {
   async addMember(req: AuthRequest, res: Response) {
     const member = await workspaceService.addMember(
       req.params.workspaceId as string,
+      req.user!.userId,
       req.body.email,
       req.body.role,
     );
@@ -39,5 +40,22 @@ export class WorkspaceController {
       success: true,
       data: members,
     });
+  }
+
+  async updateMemberRole(req: AuthRequest, res: Response) {
+    const member = await workspaceService.updateMemberRole(
+      req.params.workspaceId as string,
+      req.user!.userId,
+      req.params.memberId as string,
+      req.body.role,
+    );
+
+    return res.json({ success: true, data: member });
+  }
+
+  async deleteWorkspace(req: AuthRequest, res: Response) {
+    await workspaceService.deleteWorkspace(req.params.workspaceId as string, req.user!.userId);
+
+    return res.json({ success: true, message: "Workspace deleted successfully" });
   }
 }

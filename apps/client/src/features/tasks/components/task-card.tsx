@@ -10,9 +10,10 @@ import { richTextToPlainText } from "@/components/ui/rich-text-editor";
 import { PRIORITY_BADGE_TONE } from "@/features/tasks/constants";
 import { cn } from "@/lib/utils";
 
-export function TaskCard({ task }: { task: Task }) {
+export function TaskCard({ task, draggable = true }: { task: Task; draggable?: boolean }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: task.id,
+    disabled: !draggable,
   });
 
   const descriptionPreview = task.description ? richTextToPlainText(task.description) : "";
@@ -26,13 +27,15 @@ export function TaskCard({ task }: { task: Task }) {
         isDragging && "opacity-40",
       )}
     >
-      <button
-        {...listeners}
-        {...attributes}
-        className="mt-0.5 cursor-grab text-[var(--fg-muted)] opacity-0 group-hover:opacity-100 active:cursor-grabbing"
-      >
-        <GripVertical className="h-3.5 w-3.5" />
-      </button>
+      {draggable && (
+        <button
+          {...listeners}
+          {...attributes}
+          className="mt-0.5 cursor-grab text-[var(--fg-muted)] opacity-0 group-hover:opacity-100 active:cursor-grabbing"
+        >
+          <GripVertical className="h-3.5 w-3.5" />
+        </button>
+      )}
       <Link href={`/dashboard/tasks/${task.id}`} className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
           <div className="truncate text-sm font-medium text-[var(--fg)]">{task.title}</div>

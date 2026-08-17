@@ -16,4 +16,6 @@ export const updateTaskSchema = z.object({
     description: z.string().max(10000, "Description is too long").optional(),
     status: z.enum(["TODO", "IN_PROGRESS", "DONE"]).optional(),
     priority: taskPriorityEnum.optional(),
+    assigneeId: z.string().uuid().nullable().optional(),
+    parentTaskId: z.string().uuid().nullable().optional(),
 })

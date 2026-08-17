@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { TaskColumn } from "@/features/tasks/components/task-column";
 import { NewTaskDialog } from "@/features/tasks/components/new-task-dialog";
 import { useTasks, useUpdateTask } from "@/features/tasks/hooks/use-tasks";
+import { useMyWorkspaceRole } from "@/features/workspace/hooks/use-workspaces";
 import { useWorkspaceStore } from "@/store/workspace.store";
 import { TaskStatus } from "@/types/task.types";
 
@@ -19,6 +20,8 @@ export function TaskBoard() {
   const updateTask = useUpdateTask();
   const [newTaskOpen, setNewTaskOpen] = useState(false);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+  const myRole = useMyWorkspaceRole(activeWorkspaceId);
+  const canEdit = myRole !== null && myRole !== "VIEWER";
 
   if (!activeWorkspaceId) {
     return (
@@ -44,9 +47,11 @@ export function TaskBoard() {
         <div className="flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface-2)] px-3 py-1.5 text-xs text-[var(--fg-muted)]">
           <Search className="h-3.5 w-3.5" /> Filter by title...
         </div>
-        <Button size="sm" onClick={() => setNewTaskOpen(true)}>
-          <Plus className="h-3.5 w-3.5" /> New task
-        </Button>
+        {canEdit && (
+          <Button size="sm" onClick={() => setNewTaskOpen(true)}>
+            <Plus className="h-3.5 w-3.5" /> New task
+          </Button>
+        )}
       </div>
 
       {isLoading ? (
@@ -63,6 +68,7 @@ export function TaskBoard() {
                 key={status}
                 status={status}
                 tasks={(tasks ?? []).filter((t) => t.status === status)}
+                draggable={canEdit}
               />
             ))}
           </div>

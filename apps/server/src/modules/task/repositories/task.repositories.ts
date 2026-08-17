@@ -2,6 +2,15 @@ import { TaskPriority, TaskStatus } from "@prisma/client";
 import prisma from "../../../config/prisma";
 
 const projectSelect = { id: true, name: true, workspaceId: true };
+const userSelect = { id: true, email: true };
+const subtaskSelect = { id: true, title: true, status: true };
+
+const taskInclude = {
+  project: { select: projectSelect },
+  assignee: { select: userSelect },
+  parentTask: { select: subtaskSelect },
+  subtasks: { select: subtaskSelect },
+};
 
 export class TaskRepository {
   async create(data: {
@@ -13,7 +22,7 @@ export class TaskRepository {
   }) {
     return prisma.task.create({
       data,
-      include: { project: { select: projectSelect } },
+      include: taskInclude,
     });
   }
 
@@ -47,14 +56,14 @@ export class TaskRepository {
         createdAt: "desc",
       },
 
-      include: { project: { select: projectSelect } },
+      include: taskInclude,
     });
   }
 
   async findById(id: string) {
     return prisma.task.findUnique({
       where: { id },
-      include: { project: { select: projectSelect } },
+      include: taskInclude,
     });
   }
 
@@ -65,12 +74,14 @@ export class TaskRepository {
       description?: string;
       status?: "TODO" | "IN_PROGRESS" | "DONE";
       priority?: TaskPriority;
+      assigneeId?: string | null;
+      parentTaskId?: string | null;
     },
   ) {
     return prisma.task.update({
       where: { id },
       data,
-      include: { project: { select: projectSelect } },
+      include: taskInclude,
     });
   }
 

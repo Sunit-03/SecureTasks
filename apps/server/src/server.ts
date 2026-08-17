@@ -15,6 +15,7 @@ import morgan from "morgan";
 import { apiRateLimiter } from "./config/rate-limit";
 import workspaceRoutes from "./modules/workspace/routes/workspace.routes";
 import projectRoutes from "./modules/projects/routes/project.routes";
+import notificationRoutes from "./modules/notifications/routes/notification.routes";
 
 const app = express();
 app.use(express.json());
@@ -65,6 +66,7 @@ app.get("/admin", authMiddleware, requiredRole("ADMIN"), (_,res) => {
 app.use("/api/v1/tasks", taskRoutes);
 app.use("/api/v1/workspaces", workspaceRoutes);
 app.use("/api/v1/projects", projectRoutes);
+app.use("/api/v1/notifications", notificationRoutes);
 app.use(errorMiddleware);
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

@@ -9,7 +9,7 @@ import { NewProjectDialog } from "@/features/projects/components/new-project-dia
 import { useDeleteProject, useProjects } from "@/features/projects/hooks/use-projects";
 import { useTasks } from "@/features/tasks/hooks/use-tasks";
 import { useWorkspaceStore } from "@/store/workspace.store";
-import { useWorkspaces } from "@/features/workspace/hooks/use-workspaces";
+import { useMyWorkspaceRole, useWorkspaces } from "@/features/workspace/hooks/use-workspaces";
 import { formatDistanceToNow } from "date-fns";
 
 export default function ProjectsPage() {
@@ -19,6 +19,8 @@ export default function ProjectsPage() {
   const { data: tasks } = useTasks();
   const deleteProject = useDeleteProject(activeWorkspaceId ?? "");
   const [newProjectOpen, setNewProjectOpen] = useState(false);
+  const myRole = useMyWorkspaceRole(activeWorkspaceId);
+  const canManageProjects = myRole === "ADMIN" || myRole === "OWNER";
 
   const taskCountFor = (projectId: string) =>
     (tasks ?? []).filter((t) => t.projectId === projectId).length;
@@ -64,6 +66,7 @@ export default function ProjectsPage() {
               taskCount={taskCountFor(hero.id)}
               variant="hero"
               onDelete={() => deleteProject.mutate(hero.id)}
+              canManage={canManageProjects}
             />
           </div>
           <div className="flex flex-col gap-3">
@@ -73,18 +76,21 @@ export default function ProjectsPage() {
                 project={p}
                 taskCount={taskCountFor(p.id)}
                 onDelete={() => deleteProject.mutate(p.id)}
+                canManage={canManageProjects}
               />
             ))}
-            <NewProjectTile onClick={() => setNewProjectOpen(true)} />
+            {canManageProjects && <NewProjectTile onClick={() => setNewProjectOpen(true)} />}
           </div>
         </div>
       ) : (
         <Card>
           <CardContent className="p-6 text-center text-sm text-[var(--fg-muted)]">
             No projects yet.
-            <div className="mt-3">
-              <NewProjectTile onClick={() => setNewProjectOpen(true)} />
-            </div>
+            {canManageProjects && (
+              <div className="mt-3">
+                <NewProjectTile onClick={() => setNewProjectOpen(true)} />
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -97,6 +103,7 @@ export default function ProjectsPage() {
               project={p}
               taskCount={taskCountFor(p.id)}
               onDelete={() => deleteProject.mutate(p.id)}
+              canManage={canManageProjects}
             />
           ))}
         </div>

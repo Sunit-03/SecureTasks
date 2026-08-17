@@ -10,11 +10,13 @@ export function ProjectCard({
   taskCount,
   variant = "row",
   onDelete,
+  canManage = true,
 }: {
   project: Project;
   taskCount: number;
   variant?: "hero" | "row";
   onDelete: () => void;
+  canManage?: boolean;
 }) {
   return (
     <div
@@ -48,13 +50,15 @@ export function ProjectCard({
           {taskCount} {taskCount === 1 ? "task" : "tasks"}
         </div>
       </div>
-      <button
-        onClick={onDelete}
-        className="absolute right-3 top-3 rounded-lg p-1.5 text-[var(--fg-muted)] opacity-0 hover:bg-[var(--surface-2)] hover:text-[var(--danger)] group-hover:opacity-100 cursor-pointer"
-        aria-label="Delete project"
-      >
-        <Trash2 className="h-3.5 w-3.5" />
-      </button>
+      {canManage && (
+        <button
+          onClick={onDelete}
+          className="absolute right-3 top-3 rounded-lg p-1.5 text-[var(--fg-muted)] opacity-0 hover:bg-[var(--surface-2)] hover:text-[var(--danger)] group-hover:opacity-100 cursor-pointer"
+          aria-label="Delete project"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
+      )}
     </div>
   );
 }

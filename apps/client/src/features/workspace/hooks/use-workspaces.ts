@@ -7,8 +7,15 @@ import {
   createWorkspace,
   getWorkspaceMembers,
   getWorkspaces,
+  updateWorkspaceMemberRole,
 } from "@/services/workspace.service";
-import { AddMemberInput, CreateWorkspaceInput } from "@/types/workspace.types";
+import {
+  AddMemberInput,
+  CreateWorkspaceInput,
+  UpdateMemberRoleInput,
+  WorkspaceRole,
+} from "@/types/workspace.types";
+import { useAuthStore } from "@/store/auth.store";
 
 export const workspaceKeys = {
   all: ["workspaces"] as const,
@@ -25,6 +32,13 @@ export function useWorkspaceMembers(workspaceId: string | null) {
     queryFn: () => getWorkspaceMembers(workspaceId as string),
     enabled: !!workspaceId,
   });
+}
+
+/** The current user's role in a workspace, or null if not a member (yet) / not loaded. */
+export function useMyWorkspaceRole(workspaceId: string | null): WorkspaceRole | null {
+  const { user } = useAuthStore();
+  const { data: members } = useWorkspaceMembers(workspaceId);
+  return members?.find((m) => m.userId === user?.id)?.role ?? null;
 }
 
 export function useCreateWorkspace() {
@@ -47,6 +61,29 @@ export function useAddWorkspaceMember(workspaceId: string) {
       queryClient.invalidateQueries({ queryKey: workspaceKeys.members(workspaceId) });
       toast.success("Member invited");
     },
-    onError: () => toast.error("Could not invite member"),
+    onError: (err: unknown) => {
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+        "Could not invite member";
+      toast.error(message);
+    },
+  });
+}
+
+export function useUpdateWorkspaceMemberRole(workspaceId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ memberId, data }: { memberId: string; data: UpdateMemberRoleInput }) =>
+      updateWorkspaceMemberRole(workspaceId, memberId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: workspaceKeys.members(workspaceId) });
+      toast.success("Member role updated");
+    },
+    onError: (err: unknown) => {
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+        "Could not update member role";
+      toast.error(message);
+    },
   });
 }

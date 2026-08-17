@@ -6,7 +6,7 @@ const projectService = new ProjectService();
 
 export class ProjectController {
     async createProject(req: AuthRequest, res: Response){
-        const project = await projectService.createProject(req.body);
+        const project = await projectService.createProject(req.user!.userId, req.body);
         return res.status(201).json({success: true, data: project});
     }
 
@@ -16,12 +16,12 @@ export class ProjectController {
     }
 
     async updateProject(req: AuthRequest, res: Response){
-        const project = await projectService.updateProject(req.params.projectId as string, req.body);
+        const project = await projectService.updateProject(req.user!.userId, req.params.projectId as string, req.body);
         return res.json({success: true, data: project});
     }
 
     async deleteProject(req: AuthRequest, res: Response){
-        await projectService.deleteProject(req.params.projectId as string);
+        await projectService.deleteProject(req.user!.userId, req.params.projectId as string);
         return res.json({success: true, message: "Project deleted successfully"});
     }
 }

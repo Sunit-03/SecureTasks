@@ -7,5 +7,9 @@ export const createWorkspaceSchema = z.object({
 export const addMemberSchema = z.object({
   email: z.email(),
 
-  role: z.enum(["ADMIN", "MEMBER"]),
+  role: z.enum(["ADMIN", "MEMBER", "VIEWER"]),
+});
+
+export const updateMemberRoleSchema = z.object({
+  role: z.enum(["ADMIN", "MEMBER", "VIEWER"]),
 });

@@ -11,17 +11,11 @@ export const createProject = async (data: CreateProjectInput): Promise<Project> 
   return response.data.data;
 };
 
-export const updateProject = async (
-  id: string,
-  workspaceId: string,
-  data: UpdateProjectInput,
-): Promise<Project> => {
-  // requireWorkspaceMember on the server resolves the workspace from the body,
-  // since :projectId is the only route param — it must be included here.
-  const response = await api.patch(`/projects/${id}`, { ...data, workspaceId });
+export const updateProject = async (id: string, data: UpdateProjectInput): Promise<Project> => {
+  const response = await api.patch(`/projects/${id}`, data);
   return response.data.data;
 };
 
-export const deleteProject = async (id: string, workspaceId: string): Promise<void> => {
-  await api.delete(`/projects/${id}`, { data: { workspaceId } });
+export const deleteProject = async (id: string): Promise<void> => {
+  await api.delete(`/projects/${id}`);
 };

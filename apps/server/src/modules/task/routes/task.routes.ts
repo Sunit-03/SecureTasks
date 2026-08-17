@@ -7,9 +7,12 @@ import {
   updateTaskSchema,
 } from "../validator/task.validator";
 import { asyncHandler } from "../../../utils/async-handler";
+import commentRoutes from "../../comments/routes/comment.routes";
 
 const router = Router();
 const taskController = new TaskController();
+
+router.use("/:taskId/comments", commentRoutes);
 
 router.post(
   "/",

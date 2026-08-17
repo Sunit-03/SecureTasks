@@ -11,7 +11,10 @@ const projectController = new ProjectController();
 
 router.post("/", authMiddleware, requireWorkspaceMember, validate(createProjectSchema), asyncHandler(projectController.createProject.bind(projectController)));
 router.get("/workspace/:workspaceId", authMiddleware, requireWorkspaceMember, asyncHandler(projectController.getProjects.bind(projectController)));
-router.patch("/:projectId", authMiddleware, requireWorkspaceMember, asyncHandler(projectController.updateProject.bind(projectController)));
-router.delete("/:projectId", authMiddleware, requireWorkspaceMember, asyncHandler(projectController.deleteProject.bind(projectController)));
+// No requireWorkspaceMember here: it can only resolve a workspace from a
+// client-supplied body field, not the project's actual workspace. The
+// service looks up the project's real workspace and checks role there.
+router.patch("/:projectId", authMiddleware, asyncHandler(projectController.updateProject.bind(projectController)));
+router.delete("/:projectId", authMiddleware, asyncHandler(projectController.deleteProject.bind(projectController)));
 
 export default router;

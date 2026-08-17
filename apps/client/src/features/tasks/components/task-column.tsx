@@ -11,8 +11,16 @@ const COLUMN_LABEL: Record<TaskStatus, string> = {
   DONE: "Done",
 };
 
-export function TaskColumn({ status, tasks }: { status: TaskStatus; tasks: Task[] }) {
-  const { setNodeRef, isOver } = useDroppable({ id: status });
+export function TaskColumn({
+  status,
+  tasks,
+  draggable = true,
+}: {
+  status: TaskStatus;
+  tasks: Task[];
+  draggable?: boolean;
+}) {
+  const { setNodeRef, isOver } = useDroppable({ id: status, disabled: !draggable });
 
   return (
     <div
@@ -33,7 +41,7 @@ export function TaskColumn({ status, tasks }: { status: TaskStatus; tasks: Task[
           </div>
         )}
         {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} />
+          <TaskCard key={task.id} task={task} draggable={draggable} />
         ))}
       </div>
     </div>

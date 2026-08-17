@@ -12,12 +12,6 @@ import { useWorkspaceStore } from "@/store/workspace.store";
 import { useAuthStore } from "@/store/auth.store";
 import { formatDistanceToNow } from "date-fns";
 
-const statusTone = {
-  TODO: "neutral",
-  IN_PROGRESS: "accent",
-  DONE: "success",
-} as const;
-
 export default function DashboardPage() {
   const { user } = useAuthStore();
   const { activeWorkspaceId } = useWorkspaceStore();
@@ -25,7 +19,7 @@ export default function DashboardPage() {
   const { data: members } = useWorkspaceMembers(activeWorkspaceId);
 
   const focusTasks = (tasks ?? [])
-    .filter((t) => t.status !== "DONE")
+    .filter((t) => t.status.category !== "DONE")
     .slice(0, 4);
 
   const recentTasks = [...(tasks ?? [])]
@@ -68,7 +62,9 @@ export default function DashboardPage() {
                     <div className="truncate text-xs text-[var(--fg-muted)]">{task.project.name}</div>
                   )}
                 </div>
-                <Badge tone={statusTone[task.status]}>{task.status.replace("_", " ")}</Badge>
+                <Badge style={{ background: `${task.status.color}26`, color: task.status.color }}>
+                  {task.status.name}
+                </Badge>
               </Link>
             ))}
           </CardContent>

@@ -1,4 +1,5 @@
-export type TaskStatus = "TODO" | "IN_PROGRESS" | "DONE";
+import { WorkflowState } from "@/types/workflow-state.types";
+
 export type TaskPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
 
 export interface TaskUserRef {
@@ -6,17 +7,27 @@ export interface TaskUserRef {
   email: string;
 }
 
+export interface WorkflowStateRef {
+  id: string;
+  name: string;
+  color: string;
+  category: WorkflowState["category"];
+  order: number;
+}
+
 export interface SubtaskRef {
   id: string;
   title: string;
-  status: TaskStatus;
+  statusId: string;
+  status: WorkflowStateRef;
 }
 
 export interface Task {
   id: string;
   title: string;
   description?: string | null;
-  status: TaskStatus;
+  statusId: string;
+  status: WorkflowStateRef;
   priority: TaskPriority;
   projectId: string;
   project?: { id: string; name: string; workspaceId: string };
@@ -40,7 +51,7 @@ export interface CreateTaskInput {
 export interface UpdateTaskInput {
   title?: string;
   description?: string;
-  status?: TaskStatus;
+  statusId?: string;
   priority?: TaskPriority;
   assigneeId?: string | null;
   parentTaskId?: string | null;

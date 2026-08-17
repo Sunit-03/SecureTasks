@@ -4,15 +4,17 @@ import { AppError } from "../../../utils/errors/app-error";
 import { hasRole } from "../../../utils/permissions";
 import { logAudit } from "../../../utils/audit-log";
 import { NotificationService } from "../../notifications/services/notification.service";
+import { WorkflowStateRepository } from "../../workflow-states/repositories/workflow-state.repositories";
 import prisma from "../../../config/prisma";
 
 const taskRepository = new TaskRepository();
 const notificationService = new NotificationService();
+const workflowStateRepository = new WorkflowStateRepository();
 
 interface UpdateTaskInput {
   title?: string;
   description?: string;
-  status?: TaskStatus;
+  statusId?: string;
   priority?: TaskPriority;
   assigneeId?: string | null;
   parentTaskId?: string | null;
@@ -43,7 +45,12 @@ export class TaskService {
       throw new AppError("Unauthorized", 403);
     }
 
-    const task = await taskRepository.create({ ...data, createdById });
+    const defaultState = await workflowStateRepository.findDefault(data.projectId);
+    if (!defaultState) {
+      throw new AppError("This project has no default workflow status configured", 500);
+    }
+
+    const task = await taskRepository.create({ ...data, createdById, statusId: defaultState.id });
     await logAudit(createdById, "task.created", { taskId: task.id, projectId: data.projectId });
     return task;
   }
@@ -51,9 +58,10 @@ export class TaskService {
   async getUserTasks(userId: string, query: any) {
     const page = parseInt(query.page) || 1;
     const limit = parseInt(query.limit) || 10;
-    const status = query.status as TaskStatus | undefined;
+    const category = query.category as TaskStatus | undefined;
     const workspaceId = query.workspaceId as string | undefined;
-    return taskRepository.findVisibleToUser(userId, { page, limit, status, workspaceId });
+    const projectId = query.projectId as string | undefined;
+    return taskRepository.findVisibleToUser(userId, { page, limit, category, workspaceId, projectId });
   }
 
   private async getTaskWithMembership(taskId: string, userId: string) {
@@ -99,6 +107,13 @@ export class TaskService {
       );
     }
 
+    if (data.statusId) {
+      const state = await workflowStateRepository.findById(data.statusId);
+      if (!state || state.projectId !== task.projectId) {
+        throw new AppError("Status must belong to this task's project workflow", 400);
+      }
+    }
+
     if (data.assigneeId) {
       const assigneeMembership = await prisma.workspaceMember.findFirst({
         where: { workspaceId, userId: data.assigneeId },
@@ -113,13 +128,10 @@ export class TaskService {
         throw new AppError("A task cannot be a subtask of itself", 400);
       }
 
-      const parentTask = await prisma.task.findUnique({
-        where: { id: data.parentTaskId },
-        include: { project: { select: { workspaceId: true } } },
-      });
+      const parentTask = await prisma.task.findUnique({ where: { id: data.parentTaskId } });
 
-      if (!parentTask || parentTask.project.workspaceId !== workspaceId) {
-        throw new AppError("Parent task must belong to the same workspace", 400);
+      if (!parentTask || parentTask.projectId !== task.projectId) {
+        throw new AppError("Parent task must belong to the same project", 400);
       }
 
       if (parentTask.parentTaskId === taskId) {

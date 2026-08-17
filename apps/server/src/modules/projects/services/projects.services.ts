@@ -3,8 +3,10 @@ import { hasRole } from "../../../utils/permissions";
 import { logAudit } from "../../../utils/audit-log";
 import prisma from "../../../config/prisma";
 import { ProjectRepository } from "../repositories/project.repositories";
+import { WorkflowStateRepository } from "../../workflow-states/repositories/workflow-state.repositories";
 
 const projectRepository = new ProjectRepository();
+const workflowStateRepository = new WorkflowStateRepository();
 
 async function requireWorkspaceRole(workspaceId: string, userId: string, min: "ADMIN" | "OWNER" = "ADMIN") {
     const membership = await prisma.workspaceMember.findFirst({ where: { workspaceId, userId } });
@@ -18,6 +20,7 @@ export class ProjectService {
     async createProject(callerId: string, data: {name: string; description?: string; workspaceId: string}) {
         await requireWorkspaceRole(data.workspaceId, callerId);
         const project = await projectRepository.createProject(data);
+        await workflowStateRepository.seedDefaults(project.id);
         await logAudit(callerId, "project.created", { projectId: project.id, workspaceId: data.workspaceId });
         return project;
     }

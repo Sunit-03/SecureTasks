@@ -1,26 +1,21 @@
 "use client";
 
 import { useDroppable } from "@dnd-kit/core";
-import { Task, TaskStatus } from "@/types/task.types";
+import { Task } from "@/types/task.types";
+import { WorkflowState } from "@/types/workflow-state.types";
 import { TaskCard } from "@/features/tasks/components/task-card";
 import { cn } from "@/lib/utils";
 
-const COLUMN_LABEL: Record<TaskStatus, string> = {
-  TODO: "Backlog",
-  IN_PROGRESS: "In Progress",
-  DONE: "Done",
-};
-
 export function TaskColumn({
-  status,
+  state,
   tasks,
   draggable = true,
 }: {
-  status: TaskStatus;
+  state: WorkflowState;
   tasks: Task[];
   draggable?: boolean;
 }) {
-  const { setNodeRef, isOver } = useDroppable({ id: status, disabled: !draggable });
+  const { setNodeRef, isOver } = useDroppable({ id: state.id, disabled: !draggable });
 
   return (
     <div
@@ -31,7 +26,10 @@ export function TaskColumn({
       )}
     >
       <div className="flex items-center justify-between px-1">
-        <span className="text-xs font-semibold text-[var(--fg)]">{COLUMN_LABEL[status]}</span>
+        <span className="flex items-center gap-1.5 text-xs font-semibold text-[var(--fg)]">
+          <span className="h-2 w-2 rounded-full" style={{ background: state.color }} />
+          {state.name}
+        </span>
         <span className="text-xs text-[var(--fg-muted)]">{tasks.length}</span>
       </div>
       <div className="flex flex-col gap-2">

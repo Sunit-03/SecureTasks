@@ -3,11 +3,18 @@ import prisma from "../../../config/prisma";
 
 const projectSelect = { id: true, name: true, workspaceId: true };
 const userSelect = { id: true, email: true };
-const subtaskSelect = { id: true, title: true, status: true };
+const workflowStateSelect = { id: true, name: true, color: true, category: true, order: true };
+const subtaskSelect = {
+  id: true,
+  title: true,
+  statusId: true,
+  status: { select: workflowStateSelect },
+};
 
 const taskInclude = {
   project: { select: projectSelect },
   assignee: { select: userSelect },
+  status: { select: workflowStateSelect },
   parentTask: { select: subtaskSelect },
   subtasks: { select: subtaskSelect },
 };
@@ -19,6 +26,7 @@ export class TaskRepository {
     projectId: string;
     createdById: string;
     priority?: TaskPriority;
+    statusId: string;
   }) {
     return prisma.task.create({
       data,
@@ -31,11 +39,12 @@ export class TaskRepository {
     options: {
       page: number;
       limit: number;
-      status?: TaskStatus;
+      category?: TaskStatus;
       workspaceId?: string;
+      projectId?: string;
     },
   ) {
-    const { page, limit, status, workspaceId } = options;
+    const { page, limit, category, workspaceId, projectId } = options;
 
     return prisma.task.findMany({
       where: {
@@ -44,8 +53,9 @@ export class TaskRepository {
             members: { some: { userId } },
             ...(workspaceId && { id: workspaceId }),
           },
+          ...(projectId && { id: projectId }),
         },
-        ...(status && { status }),
+        ...(category && { status: { category } }),
       },
 
       skip: (page - 1) * limit,
@@ -72,7 +82,7 @@ export class TaskRepository {
     data: {
       title?: string;
       description?: string;
-      status?: "TODO" | "IN_PROGRESS" | "DONE";
+      statusId?: string;
       priority?: TaskPriority;
       assigneeId?: string | null;
       parentTaskId?: string | null;

@@ -1,12 +1,18 @@
 import { api } from "@/lib/api";
-import { CreateTaskInput, Task, TaskStatus, UpdateTaskInput } from "@/types/task.types";
+import { CreateTaskInput, Task, UpdateTaskInput } from "@/types/task.types";
+import { StatusCategory } from "@/types/workflow-state.types";
 
-export const getTasks = async (workspaceId?: string, status?: TaskStatus): Promise<Task[]> => {
+export const getTasks = async (
+  workspaceId?: string,
+  projectId?: string,
+  category?: StatusCategory,
+): Promise<Task[]> => {
   const response = await api.get("/tasks", {
     params: {
       limit: 100,
       ...(workspaceId ? { workspaceId } : {}),
-      ...(status ? { status } : {}),
+      ...(projectId ? { projectId } : {}),
+      ...(category ? { category } : {}),
     },
   });
   return response.data.data;

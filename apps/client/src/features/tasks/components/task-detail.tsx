@@ -38,15 +38,11 @@ import {
   useUpdateTask,
 } from "@/features/tasks/hooks/use-tasks";
 import { useComments, useCreateComment, useDeleteComment } from "@/features/tasks/hooks/use-comments";
+import { useWorkflowStates } from "@/features/workflow-states/hooks/use-workflow-states";
 import { useMyWorkspaceRole, useWorkspaceMembers } from "@/features/workspace/hooks/use-workspaces";
-import {
-  PRIORITY_BADGE_TONE,
-  PRIORITY_SELECT_OPTIONS,
-  STATUS_BADGE_TONE,
-  STATUS_SELECT_OPTIONS,
-} from "@/features/tasks/constants";
+import { PRIORITY_BADGE_TONE, PRIORITY_SELECT_OPTIONS } from "@/features/tasks/constants";
 import { useAuthStore } from "@/store/auth.store";
-import { Task, TaskPriority, TaskStatus } from "@/types/task.types";
+import { Task, TaskPriority } from "@/types/task.types";
 import { Comment } from "@/types/comment.types";
 
 const UNASSIGNED = "__unassigned__";
@@ -166,20 +162,7 @@ export function TaskDetail({ id }: { id: string }) {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Status</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <Select
-              value={task.status}
-              onChange={(status: TaskStatus) => updateTask.mutate({ id: task.id, data: { status } })}
-              options={STATUS_SELECT_OPTIONS}
-              disabled={!canEditWorkflow}
-            />
-            <Badge tone={STATUS_BADGE_TONE[task.status]}>{task.status.replace("_", " ")}</Badge>
-          </CardContent>
-        </Card>
+        <StatusCard task={task} canEdit={canEditWorkflow} />
 
         <Card>
           <CardHeader>
@@ -228,6 +211,33 @@ export function TaskDetail({ id }: { id: string }) {
   );
 }
 
+function StatusCard({ task, canEdit }: { task: Task; canEdit: boolean }) {
+  const updateTask = useUpdateTask();
+  const { data: states } = useWorkflowStates(task.projectId);
+  const options = [...(states ?? [])]
+    .sort((a, b) => a.order - b.order)
+    .map((s) => ({ value: s.id, label: s.name, color: s.color }));
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Status</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2">
+        <Select
+          value={task.statusId}
+          onChange={(statusId) => updateTask.mutate({ id: task.id, data: { statusId } })}
+          options={options}
+          disabled={!canEdit}
+        />
+        <Badge style={{ background: `${task.status.color}26`, color: task.status.color }}>
+          {task.status.name}
+        </Badge>
+      </CardContent>
+    </Card>
+  );
+}
+
 function AssigneeCard({ task, canEdit }: { task: Task; canEdit: boolean }) {
   const updateTask = useUpdateTask();
   const { data: members } = useWorkspaceMembers(task.project?.workspaceId ?? null);
@@ -263,7 +273,7 @@ function AssigneeCard({ task, canEdit }: { task: Task; canEdit: boolean }) {
 function SubtasksCard({ task, canEdit }: { task: Task; canEdit: boolean }) {
   const queryClient = useQueryClient();
   const updateTask = useUpdateTask();
-  const { data: allTasks } = useTasks();
+  const { data: allTasks } = useTasks(task.projectId);
   const [selected, setSelected] = useState("");
 
   const linkedIds = new Set((task.subtasks ?? []).map((s) => s.id));
@@ -326,7 +336,9 @@ function SubtasksCard({ task, canEdit }: { task: Task; canEdit: boolean }) {
                 <Link href={`/dashboard/tasks/${s.id}`} className="min-w-0 flex-1 truncate text-[var(--fg)]">
                   {s.title}
                 </Link>
-                <Badge tone={STATUS_BADGE_TONE[s.status]}>{s.status.replace("_", " ")}</Badge>
+                <Badge style={{ background: `${s.status.color}26`, color: s.status.color }}>
+                  {s.status.name}
+                </Badge>
                 {canEdit && (
                   <button
                     onClick={() => unlinkSubtask(s.id)}

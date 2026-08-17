@@ -14,15 +14,17 @@ import { useWorkspaceStore } from "@/store/workspace.store";
 
 export const taskKeys = {
   all: (workspaceId: string | null) => ["tasks", workspaceId] as const,
+  byProject: (workspaceId: string | null, projectId: string | null) =>
+    ["tasks", workspaceId, projectId] as const,
   detail: (id: string) => ["tasks", "detail", id] as const,
 };
 
-export function useTasks() {
+export function useTasks(projectId?: string | null) {
   const { activeWorkspaceId } = useWorkspaceStore();
   return useQuery({
-    queryKey: taskKeys.all(activeWorkspaceId),
-    queryFn: () => getTasks(activeWorkspaceId ?? undefined),
-    enabled: !!activeWorkspaceId,
+    queryKey: projectId ? taskKeys.byProject(activeWorkspaceId, projectId) : taskKeys.all(activeWorkspaceId),
+    queryFn: () => getTasks(activeWorkspaceId ?? undefined, projectId ?? undefined),
+    enabled: !!activeWorkspaceId && (projectId === undefined || !!projectId),
   });
 }
 
@@ -50,27 +52,32 @@ export function useCreateTask() {
 export function useUpdateTask() {
   const queryClient = useQueryClient();
   const { activeWorkspaceId } = useWorkspaceStore();
-  const listKey = taskKeys.all(activeWorkspaceId);
+
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateTaskInput }) =>
       updateTask(id, data),
     onMutate: async ({ id, data }) => {
-      await queryClient.cancelQueries({ queryKey: listKey });
-      const previous = queryClient.getQueryData<Task[]>(listKey);
-      if (previous) {
+      await queryClient.cancelQueries({ queryKey: ["tasks"] });
+      // getQueriesData({queryKey: ["tasks"]}) also matches the single-Task
+      // detail cache (["tasks","detail",id]) — only list queries hold arrays.
+      const previousEntries = queryClient.getQueriesData<Task[]>({ queryKey: ["tasks"] });
+      previousEntries.forEach(([key, tasks]) => {
+        if (!Array.isArray(tasks)) return;
         queryClient.setQueryData<Task[]>(
-          listKey,
-          previous.map((task) => (task.id === id ? { ...task, ...data } : task)),
+          key,
+          tasks.map((task) => (task.id === id ? { ...task, ...data } : task)),
         );
-      }
-      return { previous };
+      });
+      return { previousEntries };
     },
     onError: (_err, _vars, context) => {
-      if (context?.previous) queryClient.setQueryData(listKey, context.previous);
+      context?.previousEntries.forEach(([key, tasks]) => {
+        if (Array.isArray(tasks)) queryClient.setQueryData(key, tasks);
+      });
       toast.error("Could not update task");
     },
     onSettled: (_data, _err, vars) => {
-      queryClient.invalidateQueries({ queryKey: listKey });
+      queryClient.invalidateQueries({ queryKey: ["tasks", activeWorkspaceId] });
       queryClient.invalidateQueries({ queryKey: taskKeys.detail(vars.id) });
     },
   });
@@ -82,7 +89,7 @@ export function useDeleteTask() {
   return useMutation({
     mutationFn: (id: string) => deleteTask(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: taskKeys.all(activeWorkspaceId) });
+      queryClient.invalidateQueries({ queryKey: ["tasks", activeWorkspaceId] });
       toast.success("Task deleted");
     },
     onError: () => toast.error("Could not delete task"),

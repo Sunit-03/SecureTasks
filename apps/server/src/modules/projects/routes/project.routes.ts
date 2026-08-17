@@ -5,9 +5,12 @@ import { requireWorkspaceMember } from "../../../middleware/workspace.middleware
 import { validate } from "../../../middleware/validation.middleware";
 import { createProjectSchema } from "../validators/project.validators";
 import { asyncHandler } from "../../../utils/async-handler";
+import workflowStateRoutes from "../../workflow-states/routes/workflow-state.routes";
 
 const router = Router();
 const projectController = new ProjectController();
+
+router.use("/:projectId/workflow-states", workflowStateRoutes);
 
 router.post("/", authMiddleware, requireWorkspaceMember, validate(createProjectSchema), asyncHandler(projectController.createProject.bind(projectController)));
 router.get("/workspace/:workspaceId", authMiddleware, requireWorkspaceMember, asyncHandler(projectController.getProjects.bind(projectController)));

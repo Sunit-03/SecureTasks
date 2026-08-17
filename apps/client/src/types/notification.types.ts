@@ -1,4 +1,9 @@
-export type NotificationType = "TASK_ASSIGNED" | "SUBTASK_LINKED" | "PRIORITY_CHANGED";
+export type NotificationType =
+  | "TASK_ASSIGNED"
+  | "SUBTASK_LINKED"
+  | "PRIORITY_CHANGED"
+  | "COMMENT_REPLY"
+  | "MENTIONED";
 
 export interface Notification {
   id: string;

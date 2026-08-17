@@ -18,4 +18,5 @@ export const updateTaskSchema = z.object({
     priority: taskPriorityEnum.optional(),
     assigneeId: z.string().uuid().nullable().optional(),
     parentTaskId: z.string().uuid().nullable().optional(),
+    mentionedUserIds: z.array(z.string().uuid()).max(50).optional(),
 })

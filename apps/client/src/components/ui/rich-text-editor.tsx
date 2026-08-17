@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import DOMPurify from "isomorphic-dompurify";
-import { Bold, Italic, Underline, List, ListOrdered } from "lucide-react";
+import { AtSign, Bold, Italic, List, ListOrdered, Underline } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const SANITIZE_CONFIG = {
@@ -23,6 +23,25 @@ export function richTextToPlainText(html: string) {
     .trim();
 }
 
+export function isRichTextEmpty(html: string) {
+  return !html || html === "<br>" || html === "<p></p>" || richTextToPlainText(html) === "";
+}
+
+export interface MentionCandidate {
+  id: string;
+  email: string;
+}
+
+/** Mentions are plain "@email" text, matched against known workspace members. */
+export function extractMentionedUserIds(html: string, candidates: MentionCandidate[]): string[] {
+  const text = richTextToPlainText(html);
+  const ids = new Set<string>();
+  for (const candidate of candidates) {
+    if (text.includes(`@${candidate.email}`)) ids.add(candidate.id);
+  }
+  return Array.from(ids);
+}
+
 interface RichTextEditorProps {
   value: string;
   onChange: (html: string) => void;
@@ -30,6 +49,7 @@ interface RichTextEditorProps {
   placeholder?: string;
   disabled?: boolean;
   className?: string;
+  mentionCandidates?: MentionCandidate[];
 }
 
 const TOOLBAR_ACTIONS = [
@@ -47,9 +67,11 @@ export function RichTextEditor({
   placeholder,
   disabled,
   className,
+  mentionCandidates,
 }: RichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const isFocused = useRef(false);
+  const [mentionOpen, setMentionOpen] = useState(false);
 
   // Only push external `value` changes into the DOM while the user isn't actively
   // typing — otherwise every keystroke's onChange->value round-trip would fight
@@ -73,7 +95,17 @@ export function RichTextEditor({
     emitChange();
   };
 
-  const isEmpty = !value || value === "<br>" || value === "<p></p>";
+  // Mousedown on toolbar controls is prevented from taking focus, so the
+  // caret position in the editor is preserved right up until insertion.
+  const insertMention = (email: string) => {
+    if (disabled) return;
+    editorRef.current?.focus();
+    document.execCommand("insertText", false, `@${email} `);
+    emitChange();
+    setMentionOpen(false);
+  };
+
+  const isEmpty = isRichTextEmpty(value);
 
   return (
     <div
@@ -98,6 +130,41 @@ export function RichTextEditor({
               <Icon className="h-3.5 w-3.5" />
             </button>
           ))}
+          {mentionCandidates && mentionCandidates.length > 0 && (
+            <div className="relative">
+              <button
+                type="button"
+                title="Mention someone"
+                aria-label="Mention someone"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => setMentionOpen((v) => !v)}
+                className="rounded-md p-1.5 text-[var(--fg-muted)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--fg)] cursor-pointer"
+              >
+                <AtSign className="h-3.5 w-3.5" />
+              </button>
+              {mentionOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setMentionOpen(false)} />
+                  <div
+                    onMouseDown={(e) => e.preventDefault()}
+                    className="absolute left-0 z-20 mt-1 max-h-48 w-56 overflow-y-auto rounded-lg border border-[var(--border)] bg-[var(--surface)] p-1 shadow-xl"
+                  >
+                    {mentionCandidates.map((candidate) => (
+                      <button
+                        key={candidate.id}
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => insertMention(candidate.email)}
+                        className="block w-full truncate rounded-md px-2.5 py-1.5 text-left text-xs text-[var(--fg)] hover:bg-[var(--surface-2)] cursor-pointer"
+                      >
+                        {candidate.email}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
         </div>
       )}
       <div className="relative">

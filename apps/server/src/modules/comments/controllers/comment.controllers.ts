@@ -15,6 +15,8 @@ export class CommentController {
       req.params.taskId as string,
       req.user!.userId,
       req.body.content,
+      req.body.parentCommentId,
+      req.body.mentionedUserIds,
     );
     return res.status(201).json({ success: true, data: comment });
   }

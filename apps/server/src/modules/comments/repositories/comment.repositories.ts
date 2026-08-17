@@ -3,7 +3,12 @@ import prisma from "../../../config/prisma";
 const authorSelect = { id: true, email: true };
 
 export class CommentRepository {
-  async create(data: { content: string; taskId: string; authorId: string }) {
+  async create(data: {
+    content: string;
+    taskId: string;
+    authorId: string;
+    parentCommentId?: string;
+  }) {
     return prisma.comment.create({
       data,
       include: { author: { select: authorSelect } },

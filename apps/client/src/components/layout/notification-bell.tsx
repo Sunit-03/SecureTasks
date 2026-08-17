@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
-import { Bell, BellOff, CheckCheck, Flag, Link2, UserRound } from "lucide-react";
+import { AtSign, Bell, BellOff, CheckCheck, Flag, Link2, Reply, UserRound } from "lucide-react";
 import {
   useMarkAllNotificationsRead,
   useMarkNotificationRead,
@@ -16,6 +16,8 @@ const TYPE_ICON: Record<NotificationType, typeof Bell> = {
   TASK_ASSIGNED: UserRound,
   SUBTASK_LINKED: Link2,
   PRIORITY_CHANGED: Flag,
+  COMMENT_REPLY: Reply,
+  MENTIONED: AtSign,
 };
 
 export function NotificationBell() {

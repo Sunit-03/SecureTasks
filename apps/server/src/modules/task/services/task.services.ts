@@ -16,6 +16,7 @@ interface UpdateTaskInput {
   priority?: TaskPriority;
   assigneeId?: string | null;
   parentTaskId?: string | null;
+  mentionedUserIds?: string[];
 }
 
 export class TaskService {
@@ -126,7 +127,8 @@ export class TaskService {
       }
     }
 
-    const updated = await taskRepository.update(task.id, data);
+    const { mentionedUserIds, ...taskData } = data;
+    const updated = await taskRepository.update(task.id, taskData);
 
     await logAudit(userId, "task.updated", { taskId, fields: Object.keys(data) });
 
@@ -157,6 +159,22 @@ export class TaskService {
         `Priority of "${updated.title}" changed to ${data.priority}`,
         taskId,
       );
+    }
+
+    if (data.description !== undefined && mentionedUserIds && mentionedUserIds.length > 0) {
+      const uniqueIds = [...new Set(mentionedUserIds)].filter((id) => id !== userId);
+      const validMembers = await prisma.workspaceMember.findMany({
+        where: { workspaceId, userId: { in: uniqueIds } },
+        select: { userId: true },
+      });
+      for (const member of validMembers) {
+        await notificationService.notifyUser(
+          member.userId,
+          "MENTIONED",
+          `You were mentioned in "${updated.title}"`,
+          taskId,
+        );
+      }
     }
 
     return updated;

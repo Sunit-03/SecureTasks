@@ -44,4 +44,5 @@ export interface UpdateTaskInput {
   priority?: TaskPriority;
   assigneeId?: string | null;
   parentTaskId?: string | null;
+  mentionedUserIds?: string[];
 }

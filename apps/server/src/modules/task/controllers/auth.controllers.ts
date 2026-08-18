@@ -3,10 +3,12 @@ import { AuthService } from "../services/auth.services";
 
 const authService = new AuthService();
 
+const isProduction = process.env.NODE_ENV === "production";
+
 const REFRESH_COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: false, // Set to true in production with HTTPS
-  sameSite: "strict" as const,
+  secure: isProduction,
+  sameSite: (isProduction ? "none" : "lax") as "none" | "lax",
 };
 
 export class AuthController {

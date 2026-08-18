@@ -5,9 +5,9 @@ import { useAuthStore } from "@/store/auth.store";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { AuthLayout } from "@/components/auth/auth-layout";
 
 interface FormData {
   email: string;
@@ -32,30 +32,50 @@ export default function Login() {
       toast.error("Invalid email or password");
     }
   };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[var(--bg)] px-4">
-      <Card className="w-full max-w-md p-8">
-        <CardContent className="p-0">
-          <h1 className="mb-6 text-center text-xl font-bold text-[var(--fg)]">Log in to SecureTasks</h1>
-          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3">
-            <Input type="email" placeholder="Email" {...register("email", { required: true })} />
-            <Input
-              type="password"
-              placeholder="Password"
-              {...register("password", { required: true })}
-            />
-            <Button type="submit" disabled={isSubmitting} className="mt-1">
-              Log in
-            </Button>
-          </form>
-          <p className="mt-5 text-center text-xs text-[var(--fg-muted)]">
-            Don&apos;t have an account?{" "}
-            <Link href="/signup" className="font-medium text-[var(--accent)]">
-              Sign up
-            </Link>
-          </p>
-        </CardContent>
-      </Card>
-    </div>
+    <AuthLayout
+      heading="Work that runs itself, with you in control."
+      subtitle="Sign in to your workspace — sprints, risk flags and AI suggestions, all in one place."
+      formTitle="Sign in"
+      formSubtitle={
+        <>
+          New here?{" "}
+          <Link href="/signup" className="font-medium text-(--accent)">
+            Create an account
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+        <div>
+          <label htmlFor="email" className="mb-1.5 block text-xs font-medium text-(--fg-muted)">
+            Email
+          </label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="you@company.com"
+            {...register("email", { required: true })}
+          />
+        </div>
+        <div>
+          <div className="mb-1.5 flex items-center justify-between">
+            <label htmlFor="password" className="text-xs font-medium text-(--fg-muted)">
+              Password
+            </label>
+          </div>
+          <Input
+            id="password"
+            type="password"
+            placeholder="••••••••"
+            {...register("password", { required: true })}
+          />
+        </div>
+        <Button type="submit" disabled={isSubmitting} className="mt-2 w-full">
+          Sign in
+        </Button>
+      </form>
+    </AuthLayout>
   );
 }

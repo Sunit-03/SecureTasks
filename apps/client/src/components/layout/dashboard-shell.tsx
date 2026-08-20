@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut } from "lucide-react";
+import { LogOut, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { WorkspaceSwitcher } from "@/features/workspace/components/workspace-switcher";
 import { NotificationBell } from "@/components/layout/notification-bell";
@@ -35,6 +35,14 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             <WorkspaceSwitcher />
           </div>
           <div className="flex items-center gap-3">
+            {user?.role === "ADMIN" && (
+              <Link
+                href="/admin"
+                className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-[var(--fg-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--fg)]"
+              >
+                <ShieldCheck className="h-3.5 w-3.5" /> Admin
+              </Link>
+            )}
             <ThemeToggle />
             <NotificationBell />
             <div className="relative">

@@ -9,9 +9,9 @@ const tokenService = new TokenService();
 const refreshTokenRepository = new RefreshTokenRepository();
 
 export class AuthService {
-  private async issueTokens(userId: string, role: string) {
+  private async issueTokens(userId: string, role: string, email: string) {
     const refreshRow = await refreshTokenRepository.create(userId);
-    const accessToken = tokenService.generateAccessToken({ userId, role });
+    const accessToken = tokenService.generateAccessToken({ userId, role, email });
     const refreshToken = tokenService.generateRefreshToken({ userId, jti: refreshRow.id });
     return { accessToken, refreshToken };
   }
@@ -30,7 +30,7 @@ export class AuthService {
       passwordHash,
     });
 
-    const { accessToken, refreshToken } = await this.issueTokens(user.id, user.role);
+    const { accessToken, refreshToken } = await this.issueTokens(user.id, user.role, user.email);
     return {
       user,
       accessToken,
@@ -51,7 +51,7 @@ export class AuthService {
       throw new Error("Invalid Credentials");
     }
 
-    const { accessToken, refreshToken } = await this.issueTokens(user.id, user.role);
+    const { accessToken, refreshToken } = await this.issueTokens(user.id, user.role, user.email);
     return {
       user,
       accessToken,
@@ -98,7 +98,7 @@ export class AuthService {
     }
 
     await refreshTokenRepository.revoke(row.id);
-    const { accessToken, refreshToken } = await this.issueTokens(user.id, user.role);
+    const { accessToken, refreshToken } = await this.issueTokens(user.id, user.role, user.email);
 
     const safeUser = {
       id: user.id,

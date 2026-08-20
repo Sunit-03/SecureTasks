@@ -19,16 +19,6 @@ const commonSchemas = {
       },
     },
   },
-  AdminMessageResponse: {
-    type: "object",
-    required: ["message"],
-    properties: {
-      message: {
-        type: "string",
-        example: "Welcome, Admin!",
-      },
-    },
-  },
   RootResponse: {
     type: "object",
     required: ["message"],

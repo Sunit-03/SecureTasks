@@ -80,49 +80,6 @@ const systemPaths = {
       },
     },
   },
-  "/api/v1/admin": {
-    get: {
-      summary: "Get admin-only welcome message",
-      tags: ["Admin"],
-      security: [
-        {
-          bearerAuth: [],
-        },
-      ],
-      responses: {
-        200: {
-          description: "Admin route accessed successfully",
-          content: {
-            "application/json": {
-              schema: {
-                $ref: "#/components/schemas/AdminMessageResponse",
-              },
-            },
-          },
-        },
-        401: {
-          description: "Authorization failed",
-          content: {
-            "application/json": {
-              schema: {
-                $ref: "#/components/schemas/ErrorResponse",
-              },
-            },
-          },
-        },
-        403: {
-          description: "Authenticated user lacks the required role",
-          content: {
-            "application/json": {
-              schema: {
-                $ref: "#/components/schemas/ErrorResponse",
-              },
-            },
-          },
-        },
-      },
-    },
-  },
 };
 
 export { systemPaths };

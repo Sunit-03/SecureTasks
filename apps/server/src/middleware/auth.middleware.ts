@@ -5,6 +5,7 @@ export interface AuthRequest extends Request {
   user?: {
     userId: string;
     role: string;
+    email: string;
   };
   workspaceMember?: {
     id: string;
@@ -27,6 +28,7 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
         const payload = jwt.verify(token as string, process.env.JWT_ACCESS_SECRET! as string) as unknown as {
             userId: string;
             role: string;
+            email: string;
         };
 
         req.user = payload;

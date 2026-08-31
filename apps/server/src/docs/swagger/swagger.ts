@@ -16,6 +16,8 @@ import notificationPaths from "./notification/notification.paths";
 import notificationSchemas from "./notification/notification.schemas";
 import workflowStatePaths from "./workflow-state/workflow-state.paths";
 import workflowStateSchemas from "./workflow-state/workflow-state.schemas";
+import adminPaths from "./admin/admin.paths";
+import adminSchemas from "./admin/admin.schemas";
 
 const options: swaggerJsdoc.Options = {
   definition: {
@@ -77,6 +79,7 @@ const options: swaggerJsdoc.Options = {
       ...commentPaths,
       ...notificationPaths,
       ...workflowStatePaths,
+      ...adminPaths,
     },
     components: {
       schemas: {
@@ -88,7 +91,7 @@ const options: swaggerJsdoc.Options = {
         ...commentSchemas,
         ...notificationSchemas,
         ...workflowStateSchemas,
-
+        ...adminSchemas,
       },
       securitySchemes: {
         bearerAuth: {
